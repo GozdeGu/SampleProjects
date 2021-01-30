@@ -1,0 +1,47 @@
+#komutistemi shellinden pyModbusTCP modülü indirilmelidir.
+# pip install pyModbusTCP
+#PLC slave, Python masterdır.
+#FX5U Ethernet parametrelerinden Ethernet portuna ModbusTCP ve Melsoft Communication bağlantıları eklenmiştir.
+#Bu kod PLC Device Assignment bölümünde değişiklik yapılmadan hazırlanmıştır. 
+
+import time
+from pyModbusTCP.client import ModbusClient
+
+
+#PLC IP'ci server_Host'a girilmelidir.
+SERVER_HOST = "192.168.3.250"
+SERVER_PORT = 502
+c = ModbusClient()
+
+c.host(SERVER_HOST)
+c.port(SERVER_PORT)
+
+
+while True:
+    if not c.is_open():
+        if not c.open():
+           print("Unable to connect to "+SERVER_HOST+":"+str(SERVER_PORT))
+           time.sleep(2)
+
+    if c.is_open():
+        regs = c.read_holding_registers(0, 10)
+        bits = c.read_coils(0, 10)
+        inputs=c.read_discrete_inputs(0,10)
+
+        #D10'dan itibaren device'lara değer gönderme
+        c.write_multiple_registers(10, [123,244, 55,33,22,11,0,5])
+        #SD0'dan itibaren registerlara değer gönderme
+        c.write_multiple_registers(20480,[2222,111,22,33,4,10,12])
+
+        #D0-D9 arasındaki PLC'den değerler okunur
+        if regs:
+            print("D0-D9'a kadar PLC'den okunan devicelar: "+str(regs))
+            time.sleep(2)
+        #Y0-Y9 arasındaki çıkışar PLC'den okunur
+        if bits:
+            print("Y0-Y11'e kadar çıkışlar:"+ str(bits))
+            time.sleep(2)
+        #X0-X9 arasındaki değerler PLC'den okunur
+        if inputs:
+            print("X0-X11 aralığındaki inputlar:"+ str(inputs))
+            time.sleep(2)
