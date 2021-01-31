@@ -1,0 +1,51 @@
+#komutistemi shellinden pyModbusTCP modülü indirilmelidir.
+# pip install pyModbusTCP
+import time
+from pyModbusTCP.client import ModbusClient
+
+
+#HMI IP adresi server_Host'a girilmelidir.
+SERVER_HOST = "192.168.3.18"
+SERVER_PORT = 502
+c = ModbusClient()
+
+c.host(SERVER_HOST)
+c.port(SERVER_PORT)
+
+
+while True:
+    if not c.is_open():
+        if not c.open():
+           print("unable to connect to "+SERVER_HOST+":"+str(SERVER_PORT))
+           time.sleep(2)
+
+
+    if c.is_open():
+
+        #HMI'a girilen 400011-400016 değerleri okunur
+        regs = c.read_holding_registers(10, 5)
+
+        #HMI'daki 00001-00003 alanı okunur
+        bits = c.read_coils(0, 2)
+
+        #Input relayler okunur.HMI'da 100001-100004
+        inputs=c.read_discrete_inputs(0,3)
+
+        # HMI'da 400001-400005 devicelarından yazılma işlemi yapıldığı
+        # gözlemlenebilir
+        c.write_multiple_registers(0, [123,244,555,45])
+
+
+
+        if regs:
+            print("HMI 400011 adresi ile başlayan 5 register: "+str(regs))
+            time.sleep(2)
+
+        if bits:
+            print("Coiller:"+ str(bits))
+            time.sleep(2)
+
+        if inputs:
+            print("Input relayler:"+ str(inputs))
+            time.sleep(2)
+
